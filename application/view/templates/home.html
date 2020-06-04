@@ -1,0 +1,132 @@
+{%extends 'base.html'%} {%block body%}
+<!-- <div class="mx-auto" style="height: 200px;"></div> -->
+<div class="full-bg-img" style="margin: auto; width: 100%;">
+  <div class="container flex-center">
+    <div class="row pt-5 mt-3">
+      <div class="col-lg-6 wow fadeIn mb-5 text-center text-lg-left">
+        <div class="white-text" style="    background-color: #4babfebf;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 1px 1px 5px black;">
+          <h1 style="color: #f1f1f1;" class="h1-responsive font-weight-bold wow fadeInLeft" data-wow-delay="0.3s"> O
+            verdadeiro Streaming de vídeos</h1>
+          <hr class="hr-light wow bounceInUp" data-wow-delay="1.3s">
+          <p class="wow fadeInLeft" style="color: #f1f1f1;" data-wow-delay="1.3s">Encontre, comente e curta vídeos de
+            forma rápida e fácil.</p>
+
+          <p style="color: #f1f1f1;">O WebTheater é a mais nova plataforma de vídeos do Brasil!</p>
+          <h5 style="color: #f1f1f1">Selecione uma categoria</h5>
+          {% for category in category_list %}
+          <a class="btn btn-primary" href="/category/{{ category.get_id() }}">
+            <img src="/static/{{ category.get_image() }}" width="20px">
+            {{category.get_name()}}
+          </a>
+          {% endfor %}
+          <br>
+          <br>
+          <br>
+          <div class="row">
+            <div class="col-md-4">
+              <input class="form-control mr-sm-2 wow fadeInLeft" data-wow-delay="0.3s" type="text"
+                placeholder="Buscar vídeo" aria-label="Buscar" onkeyup="search_video(this.value)"
+                id="input-search-video">
+            </div>
+            <div id="result-search" class="col-lg-8">
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="row">
+
+          <div class="col-md-12">
+            <div id="carouselVideos" class="carousel slide" data-ride="carousel">
+              <div class="carousel-inner">
+                {% for video in videos_most_likeds%}
+                <div class="carousel-item {{ 'active' if videos_most_likeds[0] == video}}">
+                  <a href="category/{{ video.get_id_category() }}/video/{{ video.get_id() }}">
+                    <img class="d-block w-100" height="400" src="static/{{ video.get_thumb() }}"
+                      alt="{{ video.get_title() }}">
+                  </a>
+                  <div class="carousel-caption d-none d-md-block"
+                    style="background-color: #000000a6; border-radius: 20px;">
+                    <h5>{{ video.get_title() }}</h5>
+                    <p>{{ video.get_qtd_likes() }} curtidas</p>
+                    <p>{{ video.get_qtd_views() }} visualizações</p>
+                  </div>
+                </div>
+
+                {{ video.get_qtd_views() }}
+                {%endfor%}
+              </div>
+              <a class="carousel-control-prev" href="#carouselVideos" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"
+                  style="background-color: black; border-radius:5px"></span>
+                <span class="sr-only">Anteiror</span>
+              </a>
+              <a class="carousel-control-next" href="#carouselVideos" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"
+                  style="background-color: black; border-radius:5px"></span>
+                <span class="sr-only">Próximo</span>
+              </a>
+            </div>
+            <div id="searchedVideos" style="overflow-y:auto; overflow-x:hidden; max-height: 400px;" class="row"
+              style="display: none;">
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="application/javascript">
+  var search_video = function (text) {
+    var xhttp = new XMLHttpRequest();
+    if (text == '') {
+      $('#searchedVideos').css('display', 'none')
+      $('#searchedVideos').html('')
+      $('#carouselVideos').css('display', 'block')
+      $('#result-search').html('')
+      return false
+    }
+    xhttp.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+        data = this.response;
+        data = JSON.parse(data)
+        if (data.length > 0) {
+          $('#result-search').html('<span class="alert alert-success">' + data.length + ' resultado(s) encontrados.</span>')
+          $('#searchedVideos').css('display', 'block')
+          $('#searchedVideos').html('')
+          $('#carouselVideos').css('display', 'none')
+          for (let i = 0; i < data.length; i++) {
+            const video = data[i];
+            $('#searchedVideos').append(
+              '<div class="col-md-12">\
+                <div class="card" style="width: 90%; margin: 20px; ">\
+                  <img class="card-img-top" height="200" src="/static/'+ video._thumb + '" alt="' + video._title + '">\
+                  <div class="card-body">\
+                    <h5 class="card-title">'+ video._title + '<span class="badge badge-primary m-10">' + video._qtd_likes + ' curtidas</span><span class="badge badge-primary m-10">' + video._qtd_views + ' visualizações</span></h5>\
+                    <p class="card-text">'+ video._description + '</p>\
+                    <a href="/category/'+ video._id_category + '/video/' + video._id + '" class="btn btn-primary">Assistir</a>\
+                  </div>\
+                </div>\
+                </div>'
+            )
+          }
+        } else {
+          $('#result-search').html('<span class="alert alert-danger">Nenhum resultado encontrado.</span>')
+          $('#searchedVideos').css('display', 'none')
+          $('#searchedVideos').html('')
+          $('#carouselVideos').css('display', 'block')
+        }
+      }
+    };
+    xhttp.open("GET", "/video/search?text="+text+"", true);
+    xhttp.send();
+  }
+</script>
+{%endblock%}
