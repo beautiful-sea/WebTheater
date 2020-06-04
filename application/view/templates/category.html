@@ -1,0 +1,40 @@
+{%extends 'base.html'%} {%block body%}
+<div>
+    {% if videos != [] %}
+    <div class="row">
+        <img src="/static/{{ category.get_image() }}" width="50px">
+        <h1 class="m-auto">{{ category.get_name() }}</h1>
+    </div>
+    <div class="row">
+        <h5 class="m-auto">{{ category.get_description() }}</h5>
+    </div>
+    <div class="row">
+        {% for video in videos %}
+        <div class="card" style="width: 18rem; margin: 20px; ">
+            <img class="card-img-top" height="200" src="/static/{{ video.get_thumb() }}" alt="Card image cap">
+
+            <div class="card-body">
+                <div class="row">
+                    <span class="badge badge-primary">{{ video.get_qtd_likes() }} curtidas</span>
+                    <span class="badge badge-primary " style="right: 0; position: absolute;">{{ video.get_qtd_views() }} visualizações</span>
+                </div>
+                <div class="row">
+                    <h5 class="card-title">{{ (video.get_title()[:50] + '...') }}</h5>
+                    <p class="card-text">{{  (video.get_description()[:50] + '...')}}</p>
+                    <a href="/category/{{ category.get_id() }}/video/{{ video.get_id() }}"
+                        class="btn btn-primary">Assistir</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {%else%}
+    <div class="row">
+        <h3>Nenhum vídeo cadastrado na categoria.</h3>
+    </div>
+    <div class="row">
+        <a href="/" class="btn btn-info m-auto">Voltar</a>
+    </div>
+</div>
+{%endif%}
+{%endblock%}
