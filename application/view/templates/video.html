@@ -1,0 +1,111 @@
+{%extends 'base.html'%} {%block body%}
+{% if video%}
+<div class="row container">
+    <div class="col-md-12">
+        <div class="row">
+            <video style="width: 100%;" height="400px" controls>
+                <source src="/static/{{ video.get_file() }}" type="video/mp4">
+                <source src="/static/{{ video.get_file() }}" type="video/ogg">
+                Seu navegador não suporta a tag video.
+            </video>
+        </div>
+        <div class="row" style="padding: 10px;">
+            <span id="qtd_likes" class="badge badge-primary m-1">{{ video.get_qtd_likes() }} curtidas</span>
+            <span id="qtd_likes" class="badge badge-primary m-1">{{ video.get_qtd_views() }} visualizações</span>
+            <span id="created_at" class="badge badge-info m-1"
+                style="right: 0; position: absolute;">{{ video.get_created_at() }}</span>
+        </div>
+
+        <div class="row" style="background-color: white; border-radius: 20px; margin: 10px; box-shadow: 1px 1px 10px inset; padding: 10px;">
+            <div class="m-auto" >
+                {{ video.get_description() }}
+            </div>
+            
+        </div>
+    </div>
+    <div class="col-md-1">
+        <button class="btn btn-primary" onclick="like_video()" id="btn-like">Curtir</button>
+    </div>
+
+    <div class="col-md-11">
+        <div class="row" id="comments" style="max-height: 100px; overflow: scroll; overflow-x: hidden;">
+            {%for comment in comments%}
+            <p id="id_comment-{{ comment.get_id() }}"
+                style="background-color: white; padding: 10px;  border-radius: 20px; width: 100%;"><span
+                    style="color: aqua;">Anônimo comentou:</span> {{ comment.get_text() }}</p>
+            {%endfor%}
+        </div>
+        <div class="row " style="padding-top: 10px;">
+            <div class="col-md-10">
+                <textarea class="form-control" placeholder="Faça um comentário!" id="comment"></textarea>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary d-block btn-block" id="send_comment" onclick="comment_video()">
+                    Enviar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{%else%}
+Vídeo não encontrado
+{%endif%}
+
+<script>
+    // FUNCAO DE LIKE NO VIDEO
+    var like_video = function () {
+        var btn_like = $('#btn-like');
+        var xhttp = new XMLHttpRequest();
+
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                data = this.response;
+                data = JSON.parse(data) //CONVERTE RETORNO PARA JSON
+                document.getElementById('qtd_likes').innerHTML = data.qtd_likes + ' curtidas' //ATUALIZA QUANTIDADE DE CURTIDAS NA TELA
+                btn_like.attr('disabled', true) //DESABILITA BTN DE CURTIR PARA NAO CURTIR DE NOVO
+            }
+        }
+        xhttp.open("GET", "/video/like?id_video=" + {{ video.get_id() }}, true);
+    xhttp.send();
+    }
+
+    // FUNCAO DE COMENTAR O VIDEO
+    var comment_video = function () {
+        var btn_comment = document.getElementById('send_comment')
+        var comment = document.getElementById('comment')
+        var xhttp = new XMLHttpRequest();
+
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                data = this.response;
+                data = JSON.parse(data) //CONVERTE RETORNO PARA JSON
+                $('#comments').append('<p id="id_comment-' + data.id + '" style="background-color: white;  padding: 10px; border-radius: 20px; width: 100%;"><span\
+                    style="color: aqua;">Você comentou:</span> '+ data.text + ' \
+                    <a style="float:right" class="btn btn-danger btn-sm" onclick="delete_comment('+ data.id + ')">Deletar</a>\
+                    </p>'); //ADICIONA NOVO COMENTARIO NO FINAL DA LISTA DE COMENTARIOS
+                comment.value = ''; //ZERA A CAIXA DE TEXTO DO COMENTARIO
+            }
+        }
+        xhttp.open("GET", "/video/comment?id_video=" + {{ video.get_id() }} + "&comment=" + comment.value, true);
+    xhttp.send();
+    }
+
+    //FUNCAO DE DELETAR COMENTARIO
+    var delete_comment = function (id_comment) {
+        var btn_comment = document.getElementById('send_comment')
+        var comment = document.getElementById('comment')
+        var xhttp = new XMLHttpRequest();
+
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                data = this.response;
+                data = JSON.parse(data) //CONVERTE RETORNO PARA JSON
+                if (data === true) {
+                    document.getElementById('id_comment-' + id_comment).remove(); //REMOVE COMENTARIO 
+                }
+            }
+        }
+        xhttp.open("GET", "/video/delete/?id_video=" + {{ video.get_id() }} + "&id_comment=" + id_comment, true);
+    xhttp.send();
+    }
+</script>
+{%endblock%}
